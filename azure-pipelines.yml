@@ -1,0 +1,117 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  CHALLENGE_IMAGE_LABEL: dockerfile-fixed
+  NET_ALIAS: app.local
+  MESSAGE: DevOps challenge ready
+  CREDENTIALS_SECRET: ci-cred-secret
+  COMPLETION_SECRET: ci-completion-secret
+
+stages:
+- stage: validate
+  displayName: Validate code and infra
+  jobs:
+  - job: code_checks
+    displayName: Lint and migrate
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - checkout: self
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '20.x'
+    - script: npm ci
+      displayName: npm ci
+      workingDirectory: app
+    - script: npm run lint
+      displayName: npm run lint
+      workingDirectory: app
+    - script: npm run migrate
+      displayName: npm run migrate
+      workingDirectory: app
+
+  - job: infra_checks
+    displayName: Terraform fmt/validate
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - checkout: self
+    - script: |
+        sudo apt-get update
+        sudo apt-get install -y wget gnupg software-properties-common
+        wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
+        echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+        sudo apt-get update && sudo apt-get install -y terraform
+      displayName: install terraform
+    - script: |
+        terraform fmt -check
+        terraform validate
+      displayName: terraform fmt/validate
+      workingDirectory: app/infra
+
+  - job: unit_tests
+    displayName: Unit tests
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - checkout: self
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '20.x'
+    - script: npm ci
+      displayName: npm ci
+      workingDirectory: app
+    - script: npm test
+      displayName: npm test
+      workingDirectory: app
+
+- stage: build_and_test
+  displayName: Build image and smoke test
+  dependsOn: validate
+  condition: succeeded()
+  jobs:
+  - job: docker_smoke
+    displayName: Docker build and /health check
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - checkout: self
+    - task: Docker@2
+      inputs:
+        command: build
+        Dockerfile: app/Dockerfile
+        buildContext: app
+        tags: |
+          ci
+
+    - script: |
+        docker run -d --name challenge-devops-ci \
+          -e PORT=8080 \
+          -e MESSAGE="$(MESSAGE)" \
+          -e CREDENTIALS_SECRET="$(CREDENTIALS_SECRET)" \
+          -e COMPLETION_SECRET="$(COMPLETION_SECRET)" \
+          -e CHALLENGE_IMAGE_LABEL="$(CHALLENGE_IMAGE_LABEL)" \
+          -e NET_ALIAS="$(NET_ALIAS)" \
+          -p 18080:8080 \
+          challenge-devops:ci
+      displayName: docker run
+
+    - script: |
+        for i in {1..15}; do
+          if curl -sf http://localhost:18080/health >/dev/null; then
+            echo "Healthcheck OK"
+            exit 0
+          fi
+          sleep 2
+        done
+        echo "Healthcheck failed"
+        exit 1
+      displayName: smoke test /health
+
+    - script: docker rm -f challenge-devops-ci
+      displayName: cleanup container
+      condition: always()

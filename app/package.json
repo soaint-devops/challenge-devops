@@ -1,0 +1,19 @@
+{
+  "name": "challenge-devops-app",
+  "version": "1.0.0",
+  "description": "API mínima para el reto DevOps.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node src/index.js",
+    "test": "mocha \"test/**/*.test.js\"",
+    "lint": "echo \"(opcional) agrega linting o tests reales\" && exit 0",
+    "migrate": "node src/migrate.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "mocha": "^10.7.1"
+  }
+}

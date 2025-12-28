@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DevOps Challenge App</title>
+    <style>
+      :root {
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        background: linear-gradient(135deg, #0f172a, #1e293b, #0f172a);
+        color: #e2e8f0;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .card {
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+        width: min(600px, 90vw);
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 26px;
+      }
+      p {
+        margin: 4px 0 16px;
+        color: #cbd5e1;
+      }
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        background: rgba(74, 222, 128, 0.12);
+        border: 1px solid rgba(74, 222, 128, 0.3);
+        border-radius: 8px;
+        color: #4ade80;
+        font-weight: 600;
+      }
+      .todos {
+        margin-top: 16px;
+        display: grid;
+        gap: 8px;
+      }
+      .todo {
+        padding: 10px 12px;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #0b1224;
+      }
+      button {
+        background: #6366f1;
+        border: none;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      form {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      input[type="text"] {
+        flex: 1;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid #334155;
+        background: #0b1224;
+        color: #e2e8f0;
+      }
+      .error {
+        margin-top: 8px;
+        color: #f87171;
+        min-height: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <div class="status">
+        <span aria-hidden="true">●</span>
+        <span id="health">Checking...</span>
+      </div>
+      <h1>DevOps Challenge</h1>
+      <p id="message">Loading message...</p>
+
+      <form id="login-form">
+        <input id="username" type="text" placeholder="Username (en los logs)" required />
+        <input id="password" type="password" placeholder="Password (en los logs)" required />
+        <button type="submit">Login</button>
+      </form>
+      <p id="login-status" style="margin-top:6px;color:#a5b4fc;">Not logged in</p>
+
+      <button id="complete-btn" type="button" disabled style="margin:8px 0 12px;">
+        Obtener código de finalización
+      </button>
+      <p id="completion-code" style="font-weight:600;color:#4ade80;"></p>
+
+      <form id="new-todo-form">
+        <input
+          id="new-todo-input"
+          type="text"
+          placeholder="Todos automáticos (no se pueden crear nuevos)"
+          disabled
+        />
+        <button type="submit" disabled>Add</button>
+      </form>
+      <div class="error" id="error"></div>
+
+      <section class="todos" id="todos"></section>
+    </main>
+    <script src="./main.js"></script>
+  </body>
+</html>

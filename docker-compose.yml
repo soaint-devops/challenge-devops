@@ -1,0 +1,26 @@
+services:
+  api:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    environment:
+      PORT: 8080
+      MESSAGE: "DevOps challenge ready"
+      CREDENTIALS_SECRET: ${CREDENTIALS_SECRET:-soaint-devops-secret}
+      COMPLETION_SECRET: ${COMPLETION_SECRET:-soaint-devops-completion}
+      CHALLENGE_IMAGE_LABEL: "dockerfile-fixed"
+      NET_ALIAS: "app.local"
+    ports:
+      - "3000:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      challenge_net:
+        aliases:
+          - app.local
+networks:
+  challenge_net: {}
